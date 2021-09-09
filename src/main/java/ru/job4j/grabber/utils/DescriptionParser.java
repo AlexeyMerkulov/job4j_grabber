@@ -29,4 +29,8 @@ public class DescriptionParser {
         String[] dataArray = data.split(" \\[");
         return dataArray[0];
     }
+
+    public String getPostName(String link) {
+        return parseInfo(link, ".messageHeader", 0);
+    }
 }
