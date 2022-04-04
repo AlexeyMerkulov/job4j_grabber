@@ -36,7 +36,6 @@ public class SqlRuParse implements Parse {
         return rsl;
     }
 
-    @Override
     public Post detail(String link) {
         DescriptionParser dp = new DescriptionParser();
         String postName = dp.getPostName(link);
