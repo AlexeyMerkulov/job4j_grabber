@@ -24,29 +24,31 @@ public class HabrCareerParse implements Parse {
     public List<Post> list(String link) {
         List<Post> list = new ArrayList<>();
         try {
-            Connection connection = Jsoup.connect(link);
-            Document document = connection.get();
-            Elements rows = document.select(".vacancy-card__inner");
-            rows.forEach(row -> {
-                Element dateElement = row.select(".vacancy-card__date").first();
-                Element titleElement = row.select(".vacancy-card__title").first();
-                Element linkElement = titleElement.child(0);
-                String date = dateElement.child(0).attr("datetime");
-                String vacancyName = titleElement.text();
-                String vacancyLink = String.format("%s%s", "https://career.habr.com", linkElement.attr("href"));
-                Post post = getPost(vacancyName, vacancyLink, date);
-                list.add(post);
-            });
+            for (int i = 1; i < 6; i++) {
+                Connection connection = Jsoup.connect(link + String.format("?page=%s", i));
+                Document document = connection.get();
+                Elements rows = document.select(".vacancy-card__inner");
+                rows.forEach(row -> {
+                    Post post = getPost(row);
+                    list.add(post);
+                });
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
     }
 
-    private Post getPost(String title, String link, String date) {
-        String description = retrieveDescription(link);
+    private Post getPost(Element element) {
+        Element dateElement = element.select(".vacancy-card__date").first();
+        Element titleElement = element.select(".vacancy-card__title").first();
+        Element linkElement = titleElement.child(0);
+        String date = dateElement.child(0).attr("datetime");
+        String vacancyName = titleElement.text();
+        String vacancyLink = String.format("%s%s", "https://career.habr.com", linkElement.attr("href"));
+        String description = retrieveDescription(vacancyLink);
         LocalDateTime dateTime = dateTimeParser.parse(date);
-        return new Post(title, link, description, dateTime);
+        return new Post(vacancyName, vacancyLink, description, dateTime);
     }
 
     private String retrieveDescription(String link) {
