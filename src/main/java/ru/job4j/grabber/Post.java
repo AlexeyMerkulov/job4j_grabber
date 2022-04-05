@@ -21,6 +21,10 @@ public class Post {
         return id;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -53,10 +57,6 @@ public class Post {
         this.created = created;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -67,12 +67,12 @@ public class Post {
         }
         Post post = (Post) o;
         return id == post.id && Objects.equals(title, post.title) && Objects.equals(link, post.link)
-                && Objects.equals(description, post.description) && Objects.equals(created, post.created);
+                && Objects.equals(created, post.created);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, link, description, created);
+        return Objects.hash(id, title, link, created);
     }
 
     @Override
