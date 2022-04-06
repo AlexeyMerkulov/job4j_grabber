@@ -53,13 +53,7 @@ public class PsqlStore implements Store, AutoCloseable {
                      cnn.prepareStatement("select * from posts")) {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    posts.add(new Post(
-                            resultSet.getInt("id"),
-                            resultSet.getString("name"),
-                            resultSet.getString("link"),
-                            resultSet.getString("text"),
-                            resultSet.getTimestamp("created").toLocalDateTime()
-                    ));
+                    posts.add(getPost(resultSet));
                 }
             }
         } catch (Exception e) {
@@ -76,13 +70,7 @@ public class PsqlStore implements Store, AutoCloseable {
             statement.setInt(1, id);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    result = new Post(
-                            resultSet.getInt("id"),
-                            resultSet.getString("name"),
-                            resultSet.getString("link"),
-                            resultSet.getString("text"),
-                            resultSet.getTimestamp("created").toLocalDateTime()
-                    );
+                    result = getPost(resultSet);
                 }
             }
         } catch (Exception e) {
@@ -98,6 +86,16 @@ public class PsqlStore implements Store, AutoCloseable {
         }
     }
 
+    private Post getPost(ResultSet resultSet) throws SQLException {
+        return new Post(
+                resultSet.getInt("id"),
+                resultSet.getString("name"),
+                resultSet.getString("link"),
+                resultSet.getString("text"),
+                resultSet.getTimestamp("created").toLocalDateTime()
+        );
+    }
+
     public static void main(String[] args) {
         Properties properties = new Properties();
         try (InputStream in = PsqlStore.class.getClassLoader()
@@ -106,12 +104,15 @@ public class PsqlStore implements Store, AutoCloseable {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-        PsqlStore ps = new PsqlStore(properties);
-        DateTimeParser dtp = new HabrCareerDateTimeParser();
-        HabrCareerParse hbp = new HabrCareerParse(dtp);
-        List<Post> posts = hbp.list("https://career.habr.com/vacancies/java_developer");
-        posts.forEach(ps::save);
-        System.out.println(ps.getAll());
-        System.out.println(ps.findById(3));
+        try (PsqlStore ps = new PsqlStore(properties)) {
+            DateTimeParser dtp = new HabrCareerDateTimeParser();
+            HabrCareerParse hbp = new HabrCareerParse(dtp);
+            List<Post> posts = hbp.list("https://career.habr.com/vacancies/java_developer");
+            posts.forEach(ps::save);
+            System.out.println(ps.getAll());
+            System.out.println(ps.findById(3));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
